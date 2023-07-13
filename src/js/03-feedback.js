@@ -1,40 +1,28 @@
-import throttle from 'lodash.throttle';
-
+const STORAGE_KEY = 'feedback-form-state';
 const refs = {
   form: document.querySelector('.feedback-form'),
+  textarea: document.querySelector('.feedback-form textarea'),
+  input: document.querySelector('input'),
 };
-
-const LOCALSTORAGE_KEY = 'feedback-form-state';
-
-refs.form.addEventListener('input', throttle(onInputForm, 500));
-refs.form.addEventListener('submit', onSubmitForm);
-window.addEventListener('load', updateOutputOnload);
-
-function onInputForm(e) {
+const formData = {};
+populateTextarea();
+refs.form.addEventListener('input', throttle(onTextareaInput, 500));
+refs.form.addEventListener('submit', e => {
   e.preventDefault();
-  const message = refs.form.elements.message.value;
-  const email = refs.form.elements.email.value;
-  localStorage.setItem(LOCALSTORAGE_KEY, JSON.stringify({ message, email }));
+  e.currentTarget.reset();
+  const objData = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  localStorage.removeItem(STORAGE_KEY);
+});
+function onTextareaInput(e) {
+  formData[e.target.name] = e.target.value;
+  const stringifiedData = JSON.stringify(formData);
+  localStorage.setItem(STORAGE_KEY, stringifiedData);
 }
-
-function updateOutputOnload(e) {
-  e.preventDefault();
-  const outputTextContent = localStorage.getItem(LOCALSTORAGE_KEY);
-  const outputObjectContent = JSON.parse(outputTextContent) || {
-    email: '',
-    message: '',
-  };
-  const { email, message } = outputObjectContent;
-  refs.form.elements.email.value = email;
-  refs.form.elements.message.value = message;
-}
-
-function onSubmitForm(e) {
-  e.preventDefault();
-  const {
-    elements: { email, message },
-  } = e.currentTarget;
-  console.log({ email: email.value, message: message.value });
-  localStorage.clear();
-  refs.form.reset();
+function populateTextarea() {
+  const savedMessage = JSON.parse(localStorage.getItem(STORAGE_KEY));
+  if (savedMessage === null) {
+    return;
+  }
+  refs.textarea.value = savedMessage['message'] || '';
+  refs.input.value = savedMessage['email'] || '';
 }
