@@ -1,5 +1,6 @@
-import Player from '@vimeo/player';
 import throttle from 'lodash.throttle';
+import Player from '@vimeo/player';
+
 const ifFrameRef = document.querySelector('#vimeo-player');
 const player = new Player(ifFrameRef);
 player.on('timeupdate', throttle(setWatchingTime, 1000));
